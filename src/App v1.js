@@ -39,16 +39,18 @@ function formatDay(dateStr) {
 }
 
 class App extends React.Component {
-  state = {
-    location: "",
-    isLoading: false,
-    displayLocation: "",
-    weather: {},
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      location: "lisbon",
+      isLoading: false,
+      displayLocation: "",
+      weather: {},
+    };
+    this.fetchWeather = this.fetchWeather.bind(this);
+  }
 
-  // arrow functions don't lose bindings of 'this' keyword
-  fetchWeather = async () => {
-    if (this.state.location.length < 2) return this.setState({ weather: {} });
+  async fetchWeather() {
     try {
       this.setState({ isLoading: true });
       // 1) Getting location (geocoding)
@@ -77,34 +79,21 @@ class App extends React.Component {
     } finally {
       this.setState({ isLoading: false });
     }
-  };
-
-  setLocation = (e) => this.setState({ location: e.target.value });
-
-  // runs on initial render, not on rerender
-  // useEffect []
-  componentDidMount() {
-    // this.fetchWeather();
-    this.setState({ location: localStorage.getItem("location") || "" });
   }
 
-  // runs on every rerender, not initially
-  // useEffect [location]
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.location !== prevState.location) {
-      this.fetchWeather();
-      localStorage.setItem("location", this.state.location);
-    }
-  }
   render() {
     return (
       <div className="app">
         <h1>Classy Weather</h1>
-
-        <Input
-          location={this.state.location}
-          onChangeLocation={this.setLocation}
-        />
+        <div>
+          <input
+            type="text"
+            placeholder="Search from location..."
+            value={this.state.location}
+            onChange={(e) => this.setState({ location: e.target.value })}
+          />
+        </div>
+        <button onClick={this.fetchWeather}>Get weather</button>
 
         {this.setState.isLoading && <p className="loader">Loading...</p>}
 
@@ -121,26 +110,7 @@ class App extends React.Component {
 
 export default App;
 
-class Input extends React.Component {
-  render() {
-    return (
-      <div>
-        <input
-          type="text"
-          placeholder="Search from location..."
-          value={this.props.location}
-          onChange={this.props.onChangeLocation}
-        />
-      </div>
-    );
-  }
-}
-
 class Weather extends React.Component {
-  // like useEffect cleanup, only unmounts after the render, not between renders
-  componentWillUnmount() {
-    console.log("weather is unmounting...");
-  }
   render() {
     const {
       temperature_2m_max: max,
